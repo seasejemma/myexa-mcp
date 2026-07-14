@@ -23,14 +23,16 @@ clients.
 
 1. Identify the needed family with
    [references/capabilities.md](references/capabilities.md).
-2. Confirm the installed method signature in both requested languages.
-3. Keep the API key and base URL configurable; custom proxies require both.
-4. Prefer stable namespaces and current calls. Isolate deprecated compatibility
+2. For search planning, read
+   [references/search-recipes.md](references/search-recipes.md).
+3. Confirm the installed method signature in both requested languages.
+4. Keep the API key and base URL configurable; custom proxies require both.
+5. Prefer stable namespaces and current calls. Isolate deprecated compatibility
    samples.
-5. For Agent or Connect, read
+6. For Agent or Connect, read
    [references/agent-connect.md](references/agent-connect.md).
-6. Separate offline surface checks, cheap live calls, and costed/stateful tests.
-7. Clean up resources created by Search Monitor or Agent tests.
+7. Separate offline surface checks, cheap live calls, and costed/stateful tests.
+8. Clean up resources created by Search Monitor or Agent tests.
 
 ## Default rules
 
@@ -55,6 +57,7 @@ clients.
 - Upgrade both official SDKs before editing samples.
 - Compare current exported namespaces/methods with the repository's coverage
   contract.
-- Refresh the official OpenAPI snapshot and generated public specification.
+- Re-check bundled search recipes against the current SDK specifications and
+  OpenAPI source.
 - Re-run type/surface tests before live tests.
 - Record any official-doc versus released-SDK mismatch explicitly.
