@@ -11,7 +11,7 @@
       "entrypoint": "./src/main_deno.ts"
     },
     "org": "seasejemma",
-    "app": "myexa-mcp"
+    "app": "myexa-mcp-public"
   },
   "imports": {
     "@modelcontextprotocol/sdk/server/mcp.js": "npm:@modelcontextprotocol/sdk@1.29.0/server/mcp.js",
