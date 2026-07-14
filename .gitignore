@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+.direnv/
+.deno/
+node_modules/
+.DS_Store
+.ace-tool/

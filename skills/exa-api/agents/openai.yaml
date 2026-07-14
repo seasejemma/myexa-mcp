@@ -1,0 +1,4 @@
+interface:
+  display_name: "Exa API"
+  short_description: "Build with current Exa APIs and SDKs"
+  default_prompt: "Use $exa-api to implement this Exa workflow with the current official SDK surface."
