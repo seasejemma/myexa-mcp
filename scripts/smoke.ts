@@ -33,6 +33,12 @@ if (!initialized.ok) {
     `MCP initialize failed: ${initialized.status} ${await initialized.text()}`,
   );
 }
+const initializeResult = await initialized.json();
+if (initializeResult.error || initializeResult.result?.isError === true) {
+  throw new Error(
+    `MCP initialize returned an error: ${JSON.stringify(initializeResult)}`,
+  );
+}
 
 const mcp = await fetch(`${endpoint}/mcp`, {
   method: "POST",
@@ -48,13 +54,48 @@ if (!mcp.ok) {
   throw new Error(`MCP tools/list failed: ${mcp.status} ${await mcp.text()}`);
 }
 const result = await mcp.json();
-if (result.error || result.result?.tools?.length !== 7) {
+if (
+  result.error || result.result?.isError === true ||
+  result.result?.tools?.length !== 7
+) {
   throw new Error(`unexpected MCP inventory: ${JSON.stringify(result)}`);
+}
+
+const searched = await fetch(`${endpoint}/mcp`, {
+  method: "POST",
+  headers: mcpHeaders,
+  body: JSON.stringify({
+    jsonrpc: "2.0",
+    id: 2,
+    method: "tools/call",
+    params: {
+      name: "web_search_exa",
+      arguments: {
+        query: "Deno Deploy official documentation",
+        numResults: 1,
+      },
+    },
+  }),
+});
+if (!searched.ok) {
+  throw new Error(
+    `MCP web_search_exa failed: ${searched.status} ${await searched.text()}`,
+  );
+}
+const searchResult = await searched.json();
+if (
+  searchResult.error || searchResult.result?.isError === true ||
+  !searchResult.result?.content?.length
+) {
+  throw new Error(
+    `web_search_exa returned an error: ${JSON.stringify(searchResult)}`,
+  );
 }
 console.log(
   JSON.stringify({
     ok: true,
     version: payload.version,
     tools: result.result.tools.map((tool: { name: string }) => tool.name),
+    liveSearch: "ok",
   }),
 );
