@@ -321,6 +321,7 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
             arguments: {
               query: "x",
               type: "deep-reasoning",
+              category: "publication",
               systemPrompt: "cite",
               outputSchema: { type: "object" },
               additionalQueries: ["y"],
@@ -331,6 +332,7 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
     );
     assertEquals(call.status, 200, await call.clone().text());
     assertEquals(body.type, "deep-reasoning");
+    assertEquals(body.category, "publication");
     assertEquals(body.systemPrompt, "cite");
     assertEquals(body.additionalQueries, ["y"]);
 
@@ -351,6 +353,19 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
       }),
     );
     const tools = (await list.json()).result.tools;
+    const advanced = tools.find((tool: { name: string }) =>
+      tool.name === "web_search_advanced_exa"
+    );
+    assertEquals(advanced.inputSchema.properties.category.enum, [
+      "company",
+      "publication",
+      "news",
+      "pdf",
+      "github",
+      "personal site",
+      "people",
+      "financial report",
+    ]);
     const create = tools.find((tool: { name: string }) =>
       tool.name === "agent_create_run"
     );

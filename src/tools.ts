@@ -98,7 +98,7 @@ const providers = [
 ] as const;
 const categories = [
   "company",
-  "research paper",
+  "publication",
   "news",
   "pdf",
   "github",
