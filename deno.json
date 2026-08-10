@@ -16,7 +16,7 @@
   "imports": {
     "@modelcontextprotocol/sdk/server/mcp.js": "npm:@modelcontextprotocol/sdk@1.29.0/server/mcp.js",
     "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js": "npm:@modelcontextprotocol/sdk@1.29.0/server/webStandardStreamableHttp.js",
-    "exa-js": "npm:exa-js@2.16.0",
+    "exa-js": "npm:exa-js@2.17.0",
     "std/assert": "jsr:@std/assert@1.0.15",
     "zod": "npm:zod@3.25.76"
   },

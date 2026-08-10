@@ -289,7 +289,7 @@ Deno.test("MCP inventory is the seven modern tools with no aliases", async () =>
   );
 });
 
-Deno.test("advanced search forwards deep fields and current Connect enum is advertised", async () => {
+Deno.test("current Search, Connect, and Agent inputs are advertised and forwarded", async () => {
   let body: Record<string, unknown> = {};
   const upstream = Deno.serve(
     { hostname: "127.0.0.1", port: 0, onListen() {} },
@@ -336,7 +336,7 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
     assertEquals(body.systemPrompt, "cite");
     assertEquals(body.additionalQueries, ["y"]);
 
-    const list = await handler(
+    const agentCall = await handler(
       new Request("https://m.test/mcp", {
         method: "POST",
         headers: {
@@ -347,6 +347,33 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: 3,
+          method: "tools/call",
+          params: {
+            name: "agent_create_run",
+            arguments: {
+              query: "x",
+              effort: "max",
+              budget: { maxCostDollars: 7 },
+            },
+          },
+        }),
+      }),
+    );
+    assertEquals(agentCall.status, 200, await agentCall.clone().text());
+    assertEquals(body.effort, "max");
+    assertEquals(body.budget, { maxCostDollars: 7 });
+
+    const list = await handler(
+      new Request("https://m.test/mcp", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer user-secret",
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 4,
           method: "tools/list",
           params: {},
         }),
@@ -368,6 +395,23 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
     ]);
     const create = tools.find((tool: { name: string }) =>
       tool.name === "agent_create_run"
+    );
+    assertEquals(create.inputSchema.properties.effort.enum, [
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "auto",
+      "max",
+    ]);
+    assertEquals(
+      create.inputSchema.properties.budget.properties.maxCostDollars.minimum,
+      1,
+    );
+    assertEquals(
+      create.inputSchema.properties.budget.properties.maxCostDollars.maximum,
+      100,
     );
     const providerEnum =
       create.inputSchema.properties.dataSources.items.properties.provider.enum;

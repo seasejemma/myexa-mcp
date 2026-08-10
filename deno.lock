@@ -4,7 +4,7 @@
     "jsr:@std/assert@1.0.15": "1.0.15",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:@modelcontextprotocol/sdk@1.29.0": "1.29.0_zod@3.25.76",
-    "npm:exa-js@2.16.0": "2.16.0",
+    "npm:exa-js@2.17.0": "2.17.0",
     "npm:zod@3.25.76": "3.25.76"
   },
   "jsr": {
@@ -192,8 +192,8 @@
         "eventsource-parser"
       ]
     },
-    "exa-js@2.16.0": {
-      "integrity": "sha512-Cl9ShZVLIgShA5qM34F6DskqP0mpYQFIhJFtmcUEFr2dKQmRwzdewbnnIOUew6ky5Tzdgepsk8ZBTc85R+yGfw==",
+    "exa-js@2.17.0": {
+      "integrity": "sha512-lHUu/DpXpHcPXihMxgaYAeuA/hTSbb3f3NBv1Nc5PKhMvnKC8U0/ZeRFxneY9h5LdD41O795WwCkz5ZrIdJmCQ==",
       "dependencies": [
         "cross-fetch",
         "dotenv",
@@ -587,7 +587,7 @@
     "dependencies": [
       "jsr:@std/assert@1.0.15",
       "npm:@modelcontextprotocol/sdk@1.29.0",
-      "npm:exa-js@2.16.0",
+      "npm:exa-js@2.17.0",
       "npm:zod@3.25.76"
     ]
   }
