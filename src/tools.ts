@@ -54,7 +54,8 @@ type CreateArgs = {
   input?: JsonMap;
   dataSources?: Array<{ provider: typeof providers[number] }>;
   previousRunId?: string;
-  effort?: string;
+  effort?: typeof agentEfforts[number];
+  budget?: { maxCostDollars: number };
 };
 type WaitArgs = {
   runId: string;
@@ -95,6 +96,15 @@ const providers = [
   "affiliate",
   "particle",
   "jinko",
+] as const;
+const agentEfforts = [
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "auto",
+  "max",
 ] as const;
 const categories = [
   "company",
@@ -297,7 +307,7 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
 
   server.tool(
     "agent_create_run",
-    "Create an asynchronous Exa Agent run. Use outputSchema for repeatable structured results.",
+    "Create an asynchronous Exa Agent run. Use outputSchema for repeatable structured results and budget to bound metered auto or max runs.",
     {
       query: z.string().min(1),
       systemPrompt: z.string().optional(),
@@ -309,8 +319,10 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
       dataSources: z.array(z.object({ provider: z.enum(providers) })).max(5)
         .optional(),
       previousRunId: z.string().optional(),
-      effort: z.enum(["minimal", "low", "medium", "high", "xhigh", "auto"])
-        .optional(),
+      effort: z.enum(agentEfforts).optional(),
+      budget: z.object({
+        maxCostDollars: z.number().min(1).max(100),
+      }).optional(),
     },
     { readOnlyHint: false, idempotentHint: false },
     async (params: CreateArgs) => {

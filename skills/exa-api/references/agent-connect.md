@@ -3,6 +3,9 @@
 ## Create and retrieve
 
 - Use `agent.runs.create` with a bounded query, effort, and output schema.
+- `max` is the highest-cost public beta effort. For `auto` or `max`, set
+  `budget.maxCostDollars` explicitly when cost predictability matters; the API
+  accepts values from $1 to $100.
 - Non-streaming creation returns a run object with `id`.
 - Streaming creation emits `agent_run.created`; capture its `data.id` before
   later get, events, cancel, or delete calls.
@@ -36,6 +39,7 @@
 
 - Keep method/namespace drift checks offline.
 - Use the lowest effort supported by the installed SDK for live smokes.
+- Do not exercise `max` or raise an Agent budget in default-cost smokes.
 - Put costed Agent/Connect tests behind an explicit flag.
 - Delete created runs in `finally`, and report entitlement skips separately from
   passes.
