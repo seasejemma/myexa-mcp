@@ -4,15 +4,26 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
-  deno:
+  offline-gate:
+    name: Offline Deno gate
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
-      - run: deno task ci
+          deno-version: v2.9.7
+      - name: Run formatting, lint, type, and test gates
+        run: deno task ci
+      - name: Verify the gate did not modify tracked files
+        run: git diff --exit-code

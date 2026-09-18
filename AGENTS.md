@@ -34,16 +34,39 @@ documentation and `exa-js` types.
 
 ## Verification and promotion
 
+Use this gate sequence for every release candidate. Do not evaluate one commit
+and promote another.
+
+1. Work on a feature branch. Run `deno task ci` and `deno task check-env`.
+   Offline tests must distinguish the intended behavior from plausible wrong
+   implementations, especially at timeout, streaming, auth, and protocol-era
+   boundaries.
+2. Commit the tested tree. Deploy that exact commit to a Deno Development
+   preview, never Production, and record its commit and Deno revision.
+3. Run the credentialed `deno task smoke` against that preview. It must cover
+   health, legacy inventory, modern discovery, all seven tool names, and a real
+   search.
+4. Run the opt-in, costed `deno task eval:agent` against the same preview when
+   MCP, Exa, Agent, auth, runtime, or deployment behavior changed. The eval must
+   assert semantic output, use a deadline, cancel nonterminal runs, and emit no
+   token, run identifier, or Agent content.
+5. Record the offline, smoke, and eval evidence in the pull request. Merge only
+   the evaluated commit. A docs-only change may mark live gates not applicable
+   with a reason.
+6. After Production deploys from `main`, verify `/health`, authenticated MCP
+   `tools/list`, at least one real search, the streaming REST proxy, and an
+   Agent lifecycle request. Roll back with the prior Deno revision when needed.
+
 ```bash
 deno task ci
 deno task check-env
 MCP_SERVER_ENDPOINT=... KEYPOOL_TOKEN=... deno task smoke
+MCP_SERVER_ENDPOINT=... KEYPOOL_TOKEN=... deno task eval:agent
 ```
 
-Work on a branch and verify the Deno Development preview before promoting the
-exact commit to `main`. After Production deploys, verify `/health`,
-authenticated MCP `tools/list`, at least one real search, the REST proxy, and an
-Agent lifecycle request. Roll back with the prior Deno revision when needed.
+GitHub Actions is the credential-free offline gate. Never add KeyPool or Exa
+credentials to Actions to automate the live gates; run those from an approved
+operator profile instead.
 
 ## Secrets
 
