@@ -21,6 +21,8 @@
   `data_sources=[{"provider": "..."}]`.
 - Verify current provider strings in the Connect docs. API examples such as
   `similarweb` may differ from names used by MCP tool wrappers.
+- Current self-serve documentation includes `polymarket`; custom or newly
+  released providers may not yet be available through a proxy or account.
 - Expect provider-specific entitlement and usage charges. Bound `maxItems` and
   requested contact fields.
 

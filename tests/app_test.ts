@@ -19,6 +19,67 @@ const allowUser: TokenAuthorizer = (token) =>
     token === "user-secret" ? null : unauthorized("invalid_token"),
   );
 
+type McpPayload = {
+  error?: unknown;
+  result: {
+    isError?: boolean;
+    resultType?: string;
+    supportedVersions?: string[];
+    content: Array<{ text: string }>;
+    tools: ReadonlyArray<{
+      name: string;
+      inputSchema: {
+        properties: {
+          category: { enum: string[] };
+          dataSources: {
+            items: { properties: { provider: { enum: string[] } } };
+          };
+        };
+      };
+    }>;
+  };
+};
+
+async function mcpPayload(response: Response): Promise<McpPayload> {
+  const body = await response.text();
+  if (!response.headers.get("content-type")?.includes("text/event-stream")) {
+    return JSON.parse(body);
+  }
+  const messages = body.split("\n")
+    .filter((line) => line.startsWith("data: "))
+    .map((line) => JSON.parse(line.slice(6)));
+  if (messages.length === 0) throw new Error(`empty MCP stream: ${body}`);
+  return messages.at(-1) as McpPayload;
+}
+
+function modernMcpRequest(method: string, id: number): Request {
+  return new Request("https://m.test/mcp", {
+    method: "POST",
+    headers: {
+      authorization: "Bearer user-secret",
+      accept: "application/json, text/event-stream",
+      "content-type": "application/json",
+      "MCP-Protocol-Version": "2026-07-28",
+      "Mcp-Method": method,
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id,
+      method,
+      params: {
+        _meta: {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            name: "myexa-test",
+            version: "1",
+          },
+          "io.modelcontextprotocol/clientCapabilities": {},
+        },
+      },
+    }),
+  });
+}
+
 Deno.test("configuration hard-requires the KeyPool contract", () => {
   assertThrows(() => loadConfig({}), Error, "KEYPOOL_EXA_BASE_URL");
   assertThrows(
@@ -80,9 +141,62 @@ Deno.test("Agent wait polls through the current SDK and stops on completion", as
       }),
     );
     assertEquals(response.status, 200);
-    assertEquals(requests, 2);
-    const payload = await response.json();
+    const payload = await mcpPayload(response);
+    assertEquals(requests, 2, JSON.stringify(payload));
     assert(payload.result.content[0].text.includes('"terminal": true'));
+  } finally {
+    await upstream.shutdown();
+  }
+});
+
+Deno.test("Agent wait does not oversleep its deadline or poll after timeout", async () => {
+  let requests = 0;
+  const upstream = Deno.serve(
+    { hostname: "127.0.0.1", port: 0, onListen() {} },
+    () => {
+      requests++;
+      return Response.json({ id: "agent_run_test", status: "running" });
+    },
+  );
+  try {
+    const handler = createHandler(
+      {
+        ...baseConfig,
+        baseUrl: `http://127.0.0.1:${upstream.addr.port}/v1/exa`,
+      },
+      allowUser,
+    );
+    const startedAt = performance.now();
+    const response = await handler(
+      new Request("https://m.test/mcp", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer user-secret",
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 5,
+          method: "tools/call",
+          params: {
+            name: "agent_wait_for_run",
+            arguments: {
+              runId: "agent_run_test",
+              pollIntervalMs: 10_000,
+              timeoutSeconds: 1,
+            },
+          },
+        }),
+      }),
+    );
+    const elapsedMs = performance.now() - startedAt;
+    const payload = await mcpPayload(response);
+    assert(elapsedMs < 2500, `wait took ${elapsedMs}ms`);
+    assertEquals(requests, 1, JSON.stringify(payload));
+    const result = JSON.parse(payload.result.content[0].text);
+    assertEquals(result.terminal, false);
+    assertEquals(result.timedOut, true);
   } finally {
     await upstream.shutdown();
   }
@@ -282,11 +396,31 @@ Deno.test("MCP inventory is the seven modern tools with no aliases", async () =>
     }),
   );
   assertEquals(response.status, 200, await response.clone().text());
-  const payload = await response.json();
+  const payload = await mcpPayload(response);
   assertEquals(
     payload.result.tools.map((tool: { name: string }) => tool.name),
-    TOOL_NAMES,
+    [...TOOL_NAMES],
   );
+});
+
+Deno.test("MCP 2026-07-28 discovery and direct calls are stateless", async () => {
+  const handler = createHandler(baseConfig, allowUser);
+  const discovered = await handler(modernMcpRequest("server/discover", 10));
+  assertEquals(discovered.status, 200, await discovered.clone().text());
+  assertEquals(discovered.headers.get("content-type"), "application/json");
+  const discovery = await mcpPayload(discovered);
+  assertEquals(discovery.result.supportedVersions, ["2026-07-28"]);
+  assertEquals(discovery.result.resultType, "complete");
+
+  const listed = await handler(modernMcpRequest("tools/list", 11));
+  assertEquals(listed.status, 200, await listed.clone().text());
+  const inventory = await mcpPayload(listed);
+  assertEquals(inventory.result.resultType, "complete");
+  assertEquals(
+    inventory.result.tools.map((tool) => tool.name),
+    [...TOOL_NAMES],
+  );
+  assertEquals(listed.headers.get("mcp-session-id"), null);
 });
 
 Deno.test("advanced search forwards deep fields and current Connect enum is advertised", async () => {
@@ -352,23 +486,23 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
         }),
       }),
     );
-    const tools = (await list.json()).result.tools;
+    const tools = (await mcpPayload(list)).result.tools;
+    const create = tools.find((tool: { name: string }) =>
+      tool.name === "agent_create_run"
+    );
+    assert(create);
     const advanced = tools.find((tool: { name: string }) =>
       tool.name === "web_search_advanced_exa"
     );
+    assert(advanced);
     assertEquals(advanced.inputSchema.properties.category.enum, [
       "company",
       "publication",
       "news",
-      "pdf",
-      "github",
       "personal site",
-      "people",
       "financial report",
+      "people",
     ]);
-    const create = tools.find((tool: { name: string }) =>
-      tool.name === "agent_create_run"
-    );
     const providerEnum =
       create.inputSchema.properties.dataSources.items.properties.provider.enum;
     assertEquals(providerEnum, [

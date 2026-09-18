@@ -8,7 +8,8 @@ Licensed under the terms in [`LICENSE`](LICENSE).
 ## Endpoints
 
 - `GET /health` — public deployment health and version
-- `POST /mcp` — stateless Streamable HTTP MCP; KeyPool Bearer authentication
+- `POST /mcp` — stateless Streamable HTTP MCP `2026-07-28`, with stateless
+  compatibility for `2025-11-25` clients; KeyPool Bearer authentication
 - `/api/*` — transparent Exa REST proxy; Bearer or `x-api-key` authentication
 
 The MCP inventory is fixed: `web_search_exa`, `web_search_advanced_exa`,
@@ -163,6 +164,14 @@ Raw operator smoke test:
 MCP_SERVER_ENDPOINT=http://localhost:8000 KEYPOOL_TOKEN=... deno task smoke
 ```
 
+The Agent lifecycle eval creates one minimal-effort run, polls through the MCP
+output tool, cancels it if the deadline expires, and prints no run content or
+identifier:
+
+```bash
+MCP_SERVER_ENDPOINT=http://localhost:8000 KEYPOOL_TOKEN=... deno task eval:agent
+```
+
 ## Deployment
 
 Deno Deploy builds linked GitHub branches in its Development context and `main`
@@ -176,3 +185,14 @@ stores no credential: it validates each caller's token with KeyPool `/whoami`,
 then forwards that token only to the KeyPool Exa API.
 
 See [`AGENTS.md`](AGENTS.md) for the maintenance and promotion workflow.
+
+Use the same gated sequence for every release candidate:
+
+1. Run `deno task ci` in the feature branch.
+2. Commit the tested files, then deploy that exact commit to a Deno Development
+   preview.
+3. Run `deno task smoke` against the preview for health, legacy MCP inventory,
+   modern discovery, and a real search.
+4. Run the opt-in, costed `deno task eval:agent` against the same preview.
+5. Promote only that evaluated commit to `main`, then repeat health, MCP,
+   search, REST, and Agent checks in Production.

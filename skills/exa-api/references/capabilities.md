@@ -4,6 +4,11 @@
 
 - Search: regular modes, deep modes, structured deep output, inline contents,
   and `streamSearch` / `stream_search`.
+- Stored-page snapshots: use `snapshotAsOf` only with the supported search and
+  contents combinations; snapshots have a rolling retention window and plan
+  restrictions.
+- Dynamic highlights: beta, cross-result highlight budgeting. It requires the
+  current beta header and cannot be combined with per-document `maxCharacters`.
 - Contents: text, highlights, summaries, context, and subpages through
   `getContents` / `get_contents`.
 - Answer: synchronous and streamed answers with citations.
@@ -15,9 +20,22 @@
 - Stable namespace: `agent.runs`.
 - Lifecycle: create, stream, get, list, cancel, delete, poll/create-and-wait
   helpers, and stored events.
+- Graceful stop preserves partial results and is distinct from cancellation.
+- Agent Max and Agent Monitors are beta surfaces with separate headers,
+  entitlement, and cost implications. Do not enable them by default.
 - Continuation: create a new run with `previousRunId` / `previous_run_id`;
   retain both IDs.
 - Connect: pass `dataSources` / `data_sources` during Agent creation.
+
+## Batch and OpenAI-compatible routes
+
+- Batch Search and Agent requests are enterprise beta REST capabilities; the
+  TypeScript SDK does not currently provide a dedicated Batch namespace.
+- OpenAI-compatible `/chat/completions` and `/responses` routes map to Answer
+  and Agent. Their availability must be checked independently from the native
+  Answer and Agent routes.
+- Provider-neutral, OpenAI, and Anthropic tool helpers are client conveniences;
+  they do not add Exa endpoints or justify additional MCP tools.
 
 ## Search Monitors
 

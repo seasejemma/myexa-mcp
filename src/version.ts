@@ -1,3 +1,3 @@
 export const SERVER_NAME = "exa-mcp-keypool";
-export const SERVER_VERSION = "3.4.0-keypool.0";
-export const UPSTREAM_COMMIT = "5d08e36fac76fb3f237885dde66d61eec8e9e33e";
+export const SERVER_VERSION = "3.6.0-keypool.0";
+export const UPSTREAM_COMMIT = "15ffb50519e719dc791cdc750ce5ed1934c0a1ed";
