@@ -8,7 +8,8 @@ Licensed under the terms in [`LICENSE`](LICENSE).
 ## Endpoints
 
 - `GET /health` — public deployment health and version
-- `POST /mcp` — stateless Streamable HTTP MCP; KeyPool Bearer authentication
+- `POST /mcp` — stateless Streamable HTTP MCP `2026-07-28`, with stateless
+  compatibility for `2025-11-25` clients; KeyPool Bearer authentication
 - `/api/*` — transparent Exa REST proxy; Bearer or `x-api-key` authentication
 
 The MCP inventory is fixed: `web_search_exa`, `web_search_advanced_exa`,

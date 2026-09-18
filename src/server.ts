@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import type { ToolConfig } from "./upstream.ts";
 import { registerTools } from "./tools.ts";
 import { SERVER_NAME, SERVER_VERSION } from "./version.ts";

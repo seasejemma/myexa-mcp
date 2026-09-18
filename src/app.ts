@@ -1,4 +1,4 @@
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { createMcpHandler } from "@modelcontextprotocol/server";
 import {
   authorizeKeyPoolToken,
   requestToken,
@@ -34,18 +34,6 @@ export function createHandler(
     const authFailure = await authorizeToken(token, config);
     if (authFailure) return authFailure;
     if (url.pathname === "/mcp") {
-      if (request.method === "GET") {
-        return Response.json({ error: "method_not_allowed" }, {
-          status: 405,
-          headers: { allow: "POST, DELETE" },
-        });
-      }
-      if (request.method === "DELETE") {
-        return new Response(null, { status: 204 });
-      }
-      if (request.method !== "POST") {
-        return Response.json({ error: "method_not_allowed" }, { status: 405 });
-      }
       return await handleMcp(request, config, token);
     }
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
@@ -60,14 +48,12 @@ async function handleMcp(
   config: RuntimeConfig,
   token: string,
 ): Promise<Response> {
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true,
+  const handler = createMcpHandler(() =>
+    createMcpServer({
+      baseUrl: config.baseUrl,
+      teamToken: token,
+    }), {
+    legacy: "stateless",
   });
-  const server = createMcpServer({
-    baseUrl: config.baseUrl,
-    teamToken: token,
-  });
-  await server.connect(transport);
-  return await transport.handleRequest(request);
+  return await handler.fetch(request);
 }
