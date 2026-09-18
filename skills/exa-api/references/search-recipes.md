@@ -42,7 +42,7 @@ vendored API specification.
 
 ## Research papers and reports
 
-- Use `category: "research paper"` for scholarly discovery.
+- Use `category: "publication"` for scholarly discovery.
 - Use `category: "financial report"` for filings, earnings material, and annual
   reports.
 - Add venue or issuer domains when precision matters.

@@ -15,7 +15,7 @@
   },
   "imports": {
     "@modelcontextprotocol/server": "npm:@modelcontextprotocol/server@2.0.0",
-    "exa-js": "npm:exa-js@2.16.0",
+    "exa-js": "npm:exa-js@2.22.0",
     "std/assert": "jsr:@std/assert@1.0.15",
     "zod": "npm:zod@4.6.5"
   },

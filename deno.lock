@@ -4,7 +4,7 @@
     "jsr:@std/assert@1.0.15": "1.0.15",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:@modelcontextprotocol/server@2.0.0": "2.0.0",
-    "npm:exa-js@2.16.0": "2.16.0",
+    "npm:exa-js@2.22.0": "2.22.0",
     "npm:zod@4.6.5": "4.6.5"
   },
   "jsr": {
@@ -41,8 +41,8 @@
     "dotenv@16.4.7": {
       "integrity": "sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ=="
     },
-    "exa-js@2.16.0": {
-      "integrity": "sha512-Cl9ShZVLIgShA5qM34F6DskqP0mpYQFIhJFtmcUEFr2dKQmRwzdewbnnIOUew6ky5Tzdgepsk8ZBTc85R+yGfw==",
+    "exa-js@2.22.0": {
+      "integrity": "sha512-i0iAvf5z5r0wIgYZLT01aVEzUh07PR5tkEWDUCFz43mCvm85fmdDUfOOgEEfWqnN9qnBsEgz7DKYcW5b1P//BQ==",
       "dependencies": [
         "cross-fetch",
         "dotenv",
@@ -97,7 +97,7 @@
     "dependencies": [
       "jsr:@std/assert@1.0.15",
       "npm:@modelcontextprotocol/server@2.0.0",
-      "npm:exa-js@2.16.0",
+      "npm:exa-js@2.22.0",
       "npm:zod@4.6.5"
     ]
   }

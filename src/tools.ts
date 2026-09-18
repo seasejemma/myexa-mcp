@@ -100,11 +100,9 @@ const categories = [
   "company",
   "publication",
   "news",
-  "pdf",
-  "github",
   "personal site",
-  "people",
   "financial report",
+  "people",
 ] as const;
 const record = z.record(z.string(), z.unknown());
 
@@ -140,7 +138,11 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
         query: z.string().min(1),
         numResults: z.number().int().min(1).max(100).optional(),
       }),
-      annotations: { readOnlyHint: true, idempotentHint: true },
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     },
     async ({ query, numResults }: BasicSearch) => {
       try {
@@ -198,7 +200,11 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
         subpages: z.number().int().min(1).max(10).optional(),
         subpageTarget: z.array(z.string()).optional(),
       }),
-      annotations: { readOnlyHint: true, idempotentHint: true },
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     },
     async (params: AdvancedSearch) => {
       try {
@@ -282,7 +288,11 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
         urls: z.array(z.url()).min(1),
         maxCharacters: z.number().int().positive().optional(),
       }),
-      annotations: { readOnlyHint: true, idempotentHint: true },
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     },
     async ({ urls, maxCharacters }: FetchArgs) => {
       try {

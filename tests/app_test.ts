@@ -30,6 +30,7 @@ type McpPayload = {
       name: string;
       inputSchema: {
         properties: {
+          category: { enum: string[] };
           dataSources: {
             items: { properties: { provider: { enum: string[] } } };
           };
@@ -433,23 +434,22 @@ Deno.test("advanced search forwards deep fields and current Connect enum is adve
       }),
     );
     const tools = (await mcpPayload(list)).result.tools;
-    const advanced = tools.find((tool: { name: string }) =>
-      tool.name === "web_search_advanced_exa"
-    );
-    assertEquals(advanced.inputSchema.properties.category.enum, [
-      "company",
-      "publication",
-      "news",
-      "pdf",
-      "github",
-      "personal site",
-      "people",
-      "financial report",
-    ]);
     const create = tools.find((tool: { name: string }) =>
       tool.name === "agent_create_run"
     );
     assert(create);
+    const advanced = tools.find((tool: { name: string }) =>
+      tool.name === "web_search_advanced_exa"
+    );
+    assert(advanced);
+    assertEquals(advanced.inputSchema.properties.category.enum, [
+      "company",
+      "publication",
+      "news",
+      "personal site",
+      "financial report",
+      "people",
+    ]);
     const providerEnum =
       create.inputSchema.properties.dataSources.items.properties.provider.enum;
     assertEquals(providerEnum, [
