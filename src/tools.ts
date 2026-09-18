@@ -364,14 +364,21 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
       }),
       annotations: { readOnlyHint: true, idempotentHint: true },
     },
-    async ({ runId, timeoutSeconds, pollIntervalMs }: WaitArgs) => {
+    async ({ runId, timeoutSeconds, pollIntervalMs }: WaitArgs, ctx) => {
       try {
         const deadline = Date.now() + (timeoutSeconds ?? 45) * 1000;
+        const interval = pollIntervalMs ?? 4000;
+        ctx.mcpReq.signal.throwIfAborted();
         let run = await api(config).agent.runs.get(runId);
-        while (!terminal(run.status) && Date.now() < deadline) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, pollIntervalMs ?? 4000)
+        while (!terminal(run.status)) {
+          ctx.mcpReq.signal.throwIfAborted();
+          const remaining = deadline - Date.now();
+          if (remaining <= 0) break;
+          await abortableDelay(
+            Math.min(interval, remaining),
+            ctx.mcpReq.signal,
           );
+          if (Date.now() >= deadline) break;
           run = await api(config).agent.runs.get(runId);
         }
         return json({
@@ -437,4 +444,19 @@ export function registerTools(server: McpServer, config: ToolConfig): void {
 function terminal(status: string): boolean {
   return status === "completed" || status === "failed" ||
     status === "cancelled";
+}
+
+function abortableDelay(milliseconds: number, signal: AbortSignal) {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<void>((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, milliseconds);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
 }

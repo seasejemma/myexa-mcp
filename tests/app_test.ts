@@ -149,6 +149,59 @@ Deno.test("Agent wait polls through the current SDK and stops on completion", as
   }
 });
 
+Deno.test("Agent wait does not oversleep its deadline or poll after timeout", async () => {
+  let requests = 0;
+  const upstream = Deno.serve(
+    { hostname: "127.0.0.1", port: 0, onListen() {} },
+    () => {
+      requests++;
+      return Response.json({ id: "agent_run_test", status: "running" });
+    },
+  );
+  try {
+    const handler = createHandler(
+      {
+        ...baseConfig,
+        baseUrl: `http://127.0.0.1:${upstream.addr.port}/v1/exa`,
+      },
+      allowUser,
+    );
+    const startedAt = performance.now();
+    const response = await handler(
+      new Request("https://m.test/mcp", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer user-secret",
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 5,
+          method: "tools/call",
+          params: {
+            name: "agent_wait_for_run",
+            arguments: {
+              runId: "agent_run_test",
+              pollIntervalMs: 10_000,
+              timeoutSeconds: 1,
+            },
+          },
+        }),
+      }),
+    );
+    const elapsedMs = performance.now() - startedAt;
+    const payload = await mcpPayload(response);
+    assert(elapsedMs < 2500, `wait took ${elapsedMs}ms`);
+    assertEquals(requests, 1, JSON.stringify(payload));
+    const result = JSON.parse(payload.result.content[0].text);
+    assertEquals(result.terminal, false);
+    assertEquals(result.timedOut, true);
+  } finally {
+    await upstream.shutdown();
+  }
+});
+
 Deno.test("request auth accepts Bearer and x-api-key credentials", () => {
   assertEquals(
     requestToken(

@@ -22,10 +22,11 @@
   "tasks": {
     "dev": "deno run --allow-env --allow-net --allow-read --watch src/main_deno.ts",
     "start": "deno run --allow-env --allow-net --allow-read src/main_deno.ts",
-    "check": "deno check src/main_deno.ts scripts/check-env.ts scripts/smoke.ts",
+    "check": "deno check src/main_deno.ts scripts/check-env.ts scripts/smoke.ts scripts/eval-agent.ts",
     "check-env": "deno run --allow-env scripts/check-env.ts",
     "test": "deno test --allow-env --allow-net --allow-read tests",
     "ci": "deno fmt --check && deno lint && deno task check && deno task test",
-    "smoke": "deno run --allow-env --allow-net scripts/smoke.ts"
+    "smoke": "deno run --allow-env --allow-net scripts/smoke.ts",
+    "eval:agent": "deno run --allow-env --allow-net scripts/eval-agent.ts"
   }
 }
